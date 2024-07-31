@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "preprocess": "bun ./preprocess.ts",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
@@ -18,5 +19,8 @@
     "typedoc-plugin-markdown": "4.1.0",
     "typedoc-plugin-mdn-links": "^3.2.6",
     "typescript": "^5.5.4"
+  },
+  "devDependencies": {
+    "ts-morph": "^23.0.0"
   }
 }
