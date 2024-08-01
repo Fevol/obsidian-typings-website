@@ -1,5 +1,4 @@
-import {Application, Converter, ReflectionKind, DeclarationReflection} from "typedoc";
-import { MarkdownRendererEvent, MarkdownPageEvent} from "typedoc-plugin-markdown";
+import { MarkdownPageEvent} from "typedoc-plugin-markdown";
 
 export function load(app) {
     app.renderer.on(

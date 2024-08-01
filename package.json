@@ -7,20 +7,26 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
+    "quick-build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/check": "^0.8.3",
     "@astrojs/starlight": "^0.25.3",
+    "@astrojs/svelte": "^5.7.0",
     "astro": "^4.12.3",
+    "d3": "^7.9.0",
+    "rfdc": "^1.4.1",
     "starlight-typedoc": "^0.13.1",
+    "svelte": "^5.0.0-next.205",
     "typedoc": "^0.26.5",
     "typedoc-plugin-markdown": "4.1.0",
     "typedoc-plugin-mdn-links": "^3.2.6",
     "typescript": "^5.5.4"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "ts-morph": "^23.0.0"
   }
 }

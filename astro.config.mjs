@@ -1,13 +1,21 @@
 import starlight from '@astrojs/starlight'
+import svelte from '@astrojs/svelte'
 import {defineConfig} from 'astro/config'
 import starlightTypeDoc, {typeDocSidebarGroup} from 'starlight-typedoc'
+import sitemap from "./integrations/astro-sitemap"
+
+
 
 export default defineConfig({
     integrations: [
+        svelte(),
         starlight({
             title: 'Obsidian Typings TypeDoc',
             social: {
                 github: 'https://github.com/fevol/obsidian-typings'
+            },
+            components: {
+                PageSidebar: './src/components/PageSidebar.astro',
             },
             sidebar: [
                 {
@@ -21,7 +29,7 @@ export default defineConfig({
                 typeDocSidebarGroup
             ],
             customCss: [
-                './src/styles/custom.css'
+                './src/styles/global.css'
             ],
             plugins: [
                 // Generate the documentation.
@@ -50,6 +58,7 @@ export default defineConfig({
                 }),
             ]
         }),
-    ],
+        sitemap()
+    ]
 })
 

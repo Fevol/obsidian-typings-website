@@ -55,7 +55,7 @@ function setSources(ref, file_name = "", file_path = "", offset = 0) {
                         source.fullFileName = source.fileName.slice(13)
                         source.fileName = source.fileName.split("/").pop();
                         const file_path = source.fullFileName.slice(package_name.length + 1);
-                        const version = packages[package_name].version ? (packages[package_name].version_prefix || "") + packages[package_name].version : "HEAD";
+                        const version = packages[package_name].version ? ((packages[package_name].version_prefix || "") + packages[package_name].version) : "HEAD";
                         source.url = `https://github.com/${packages[package_name].github}/blob/${version}/${file_path}#L` + source.line;
                     }
                 }
