@@ -16,37 +16,40 @@ export default defineConfig({
                 },
                 {
                     label: 'Guides',
-                    autogenerate: {directory: 'guides'}
-
+                    autogenerate: {directory: 'guides'},
                 },
                 typeDocSidebarGroup
             ],
-
+            customCss: [
+                './src/styles/custom.css'
+            ],
             plugins: [
                 // Generate the documentation.
                 starlightTypeDoc({
                     entryPoints: [
-                        './obsidian-typings/src/types.d.ts',
+                        './obsidian-typings/src/full-types.d.ts'
                     ],
                     tsconfig: './obsidian-typings/tsconfig.json',
                     pagination: true,
                     sidebar: {
-                        label: 'API (auto-generated)',
+                        label: 'API',
+                        collapsed: true
                     },
                     typeDoc: {
                         plugin: [
+                            './plugins/resolve-source-plugin.js',
+                            './plugins/badge-addition-plugin.js',
                             'typedoc-plugin-mdn-links'
                         ],
                         theme: 'starlight-typedoc',
                         githubPages: false,
                         entryPointStrategy: 'expand',
-                        categorizeByGroup: true,
-                        flattenOutputFiles: false,
                         // propertiesFormat: 'table',
-                        excludeExternals: false,
+                        excludeExternals: false
                     },
                 }),
             ]
         }),
     ],
 })
+

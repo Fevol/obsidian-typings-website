@@ -42,7 +42,33 @@ async function convertRecursive(dir: string): Promise<void> {
                 }
             }
 
-            for (const module of sourceFile.getModules()) {
+            for (let module of sourceFile.getModules()) {
+                const path = sourceFile.getFilePath().slice(srcDir.length - 20);
+                for (let declaration of module.getFunctions()) {
+                    declaration.insertJsDoc(0, {
+                        tags: [{
+                            tagName: "source",
+                            text: path
+                        }]
+                    });
+                }
+                for (let declaration of module.getInterfaces()) {
+                    declaration.addJsDoc({
+                        tags: [{
+                            tagName: "source",
+                            text: path
+                        }]
+                    });
+                }
+                for (let declaration of module.getClasses()) {
+                    declaration.addJsDoc({
+                        tags: [{
+                            tagName: "source",
+                            text: path
+                        }]
+                    });
+                }
+
                 augmentations.set(augmentationsDirName, (augmentations.get(augmentationsDirName) ?? "") + module.getBodyText() + "\n");
             }
         }
@@ -62,13 +88,67 @@ for (const [moduleSpecifier, importedNames] of imports) {
     });
 }
 
-for (const [augmentationsDirName, augmentation] of augmentations) {
-    const namespaceName = "_" + augmentationsDirName.replace(/[^a-zA-Z0-9]/g, "_");
-    typesSourceFile.addModule({
-        name: namespaceName,
-        isExported: true,
-        statements: augmentation
-    })
+// Remove existing exports from the types file (only allow exporting via namespaces)
+for (const exportDeclaration of typesSourceFile.getExportDeclarations()) {
+    exportDeclaration.remove();
 }
 
-await typesSourceFile.save();
+
+for (let [augmentationsDirName, augmentation] of augmentations) {
+    const namespaceName = "_" + augmentationsDirName.replace(/[^a-zA-Z0-9]/g, "_");
+    if (augmentationsDirName === "obsidian") {
+        augmentation = "export * from 'obsidian';\n" + augmentation;
+        typesSourceFile.addModule({
+            name: namespaceName,
+            isExported: true,
+            statements: augmentation,
+            docs: [{
+                tags: [{
+                    tagName: "source",
+                    text: "obsidianmd/obsidian-api/blob/master/obsidian.d.ts"
+                }]
+            }]
+        })
+    } else {
+        typesSourceFile.addModule({
+            name: namespaceName,
+            isExported: true,
+            statements: augmentation
+        })
+    }
+}
+
+typesSourceFile.addModule({
+    name: "_internals",
+    isExported: true,
+    statements: "export * from './obsidian/types.js';"
+});
+
+
+const canvasSourceFile = project.addSourceFileAtPath("./obsidian-typings/node_modules/obsidian/canvas.d.ts");
+typesSourceFile.addModule({
+    name: "_canvas",
+    isExported: true,
+    statements: canvasSourceFile.getFullText(),
+    docs: [{
+        tags: [{
+            tagName: "source",
+            text: "obsidianmd/obsidian-api/blob/master/canvas.d.ts#" + (typesSourceFile.getEndLineNumber() + 2)
+        }]
+    }]
+});
+
+const publishSourceFile = project.addSourceFileAtPath("./obsidian-typings/node_modules/obsidian/publish.d.ts");
+typesSourceFile.addModule({
+    name: "_publish",
+    isExported: true,
+    statements: publishSourceFile.getFullText(),
+    docs: [{
+        tags: [{
+            tagName: "source",
+            text: "obsidianmd/obsidian-api/blob/master/publish.d.ts#" + (typesSourceFile.getEndLineNumber() + 2)
+        }]
+    }]
+});
+
+await typesSourceFile.copy("./obsidian-typings/src/full-types.d.ts", { overwrite: true }).save();

@@ -1,0 +1,5 @@
+/*Only small-caps the top .group-label element*/
+.group-label {
+    text-transform: capitalize;
+    /*font-variant: small-caps;*/
+}
