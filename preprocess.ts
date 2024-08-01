@@ -1,4 +1,4 @@
-import { readdir } from "node:fs/promises";
+import {readdir} from "node:fs/promises";
 import {
     basename,
     dirname,
@@ -6,7 +6,9 @@ import {
     relative
 } from "node:path/posix";
 
-import { Project } from "ts-morph";
+import {Project} from "ts-morph";
+
+import obsidian_package from "./obsidian-typings/node_modules/obsidian/package.json";
 
 const project = new Project();
 
@@ -14,7 +16,7 @@ const augmentations = new Map<string, string>();
 const imports = new Map<string, Set<string>>();
 
 async function convertRecursive(dir: string): Promise<void> {
-    for (const dirent of await readdir(dir, { withFileTypes: true })) {
+    for (const dirent of await readdir(dir, {withFileTypes: true})) {
         if (dirent.isDirectory()) {
             await convertRecursive(`${dir}/${dirent.name}`);
         } else if (dirent.name.endsWith(".d.ts")) {
@@ -92,8 +94,6 @@ for (const [moduleSpecifier, importedNames] of imports) {
 for (const exportDeclaration of typesSourceFile.getExportDeclarations()) {
     exportDeclaration.remove();
 }
-
-
 for (let [augmentationsDirName, augmentation] of augmentations) {
     const namespaceName = "_" + augmentationsDirName.replace(/[^a-zA-Z0-9]/g, "_");
     if (augmentationsDirName === "obsidian") {
@@ -105,7 +105,7 @@ for (let [augmentationsDirName, augmentation] of augmentations) {
             docs: [{
                 tags: [{
                     tagName: "source",
-                    text: "obsidianmd/obsidian-api/blob/master/obsidian.d.ts"
+                    text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/obsidian.d.ts`
                 }]
             }]
         })
@@ -133,7 +133,7 @@ typesSourceFile.addModule({
     docs: [{
         tags: [{
             tagName: "source",
-            text: "obsidianmd/obsidian-api/blob/master/canvas.d.ts#" + (typesSourceFile.getEndLineNumber() + 2)
+            text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/canvas.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
         }]
     }]
 });
@@ -146,9 +146,9 @@ typesSourceFile.addModule({
     docs: [{
         tags: [{
             tagName: "source",
-            text: "obsidianmd/obsidian-api/blob/master/publish.d.ts#" + (typesSourceFile.getEndLineNumber() + 2)
+            text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/publish.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
         }]
     }]
 });
 
-await typesSourceFile.copy("./obsidian-typings/src/full-types.d.ts", { overwrite: true }).save();
+await typesSourceFile.copy("./obsidian-typings/src/full-types.d.ts", {overwrite: true}).save();
