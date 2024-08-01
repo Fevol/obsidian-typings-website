@@ -5,8 +5,8 @@
 
     --gray: #f0f0f0;
 
-    --secondary: #38baaf;
-    --tertiary: #47d841;
+    --secondary: #7aa1dd;
+    --tertiary: #a1e89f;
 
     --text-color: #fff;
 }
@@ -14,6 +14,34 @@
 text {
     fill: white;
     color: white;
+}
+
+*[aria-label] {
+    position: relative;
+}
+
+*[aria-label]:hover:before {
+    background: #333;
+    border-radius: 4px;
+    color: #ccc;
+    content: attr(aria-label);
+    padding: 2px 4px;
+    position: absolute;
+    white-space: nowrap;
+    top: calc(100% + 4px);
+    z-index: 1000000000;
+}
+
+*[aria-label]:hover:after {
+    background: #333;
+    content: '';
+    width: 6px;
+    height: 6px;
+    position: absolute;
+    white-space: nowrap;
+    top: calc(100% + 1px);
+    left: 8px;
+    transform: rotate(45deg);
 }
 
 .group-label {
@@ -37,28 +65,35 @@ text {
         position: relative;
         overflow: hidden;
 
-        & > #global-graph-icon {
-            color: var(--dark);
-            opacity: 0.5;
-            width: 18px;
-            height: 18px;
+        & > .graph-action-container {
             position: absolute;
-            padding: 0.2rem;
-            margin: 0.3rem;
             top: 0;
             right: 0;
-            border-radius: 4px;
-            background-color: transparent;
-            transition: background-color 0.5s ease;
-            cursor: pointer;
 
-            &:hover {
-                background-color: var(--lightgray);
+            display: flex;
+            flex-direction: row;
+            gap: 0.2rem;
+            margin: 0.3rem;
+
+            & > .graph-action {
+                color: var(--dark);
+                opacity: 0.5;
+                width: 20px;
+                height: 20px;
+                padding: 0.2rem;
+                border-radius: 4px;
+                background-color: transparent;
+                transition: background-color 0.5s ease;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: var(--lightgray);
+                }
             }
         }
     }
 
-    & > #global-graph-outer {
+    & > #fullscreen-graph-outer {
         position: fixed;
         z-index: 9999;
         left: 0;
@@ -73,7 +108,7 @@ text {
             display: inline-block;
         }
 
-        & > #global-graph-container {
+        & > #fullscreen-graph-container {
             border: 1px solid var(--lightgray);
             background-color: var(--light);
             border-radius: 5px;
