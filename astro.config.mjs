@@ -47,6 +47,7 @@ export default defineConfig({
                         plugin: [
                             './plugins/resolve-source-plugin.js',
                             './plugins/badge-addition-plugin.js',
+                            'typedoc-plugin-frontmatter',
                             'typedoc-plugin-mdn-links'
                         ],
                         theme: 'starlight-typedoc',
