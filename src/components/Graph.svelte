@@ -10,6 +10,7 @@
     import {onMount} from "svelte";
     import * as d3 from "d3"
     import sitemapFile from "./../../public/sitemap.json";
+    import {getRelativePath} from "./util.ts";
 
     type GraphOptions = {
         drag: boolean,
@@ -141,17 +142,6 @@
         const visited = getVisited()
         visited.add(slug)
         sessionStorage.setItem(sessionStorageKey, JSON.stringify([...visited]))
-    }
-
-    function getRelativePath(current: string, next: string) {
-        const currentSegments = current.split("/")
-        const nextSegments = next.split("/")
-        const common = currentSegments.reduce((acc, cur, i) => (cur === nextSegments[i] ? i : acc), 0)
-        const back = currentSegments.length - common
-        let forward = nextSegments.slice(common).join("/")
-        if (!forward.endsWith("/"))
-            forward += "/"
-        return `${"../".repeat(back)}${forward}`
     }
 
     async function renderGraph() {

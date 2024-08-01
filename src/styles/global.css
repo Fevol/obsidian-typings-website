@@ -9,6 +9,8 @@
     --tertiary: #a1e89f;
 
     --text-color: #fff;
+
+    --accent: #7b97aa;
 }
 
 text {
@@ -50,12 +52,7 @@ text {
 }
 
 .graph {
-    margin: 0 1em;
-
-    & > h3 {
-        font-size: 1rem;
-        margin: 0;
-    }
+    padding: 1rem var(--sl-sidebar-pad-x);
 
     & > .graph-outer {
         border-radius: 5px;
@@ -125,9 +122,35 @@ text {
     }
 }
 
+.backlinks-pane {
+    padding: 1rem var(--sl-sidebar-pad-x);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+
+    .backlink {
+        margin-left: 0.8rem;
+        text-decoration: none;
+        color: var(--accent);
+        font-weight: 800;
+        font-size: 0.95rem;
+
+        &:hover {
+            filter: brightness(1.2);
+        }
+    }
+}
+
 @media (max-width: 1152px) {
     .main-frame > div {
         display: flex;
         flex-direction: column-reverse;
+        .right-sidebar {
+            display: flex;
+        }
     }
+}
+
+.right-sidebar {
+    width: calc(var(--sl-sidebar-width) +(100% - var(--sl-content-width) - var(--sl-sidebar-width)) / 2);
 }

@@ -1,0 +1,29 @@
+---
+
+---
+
+<div id="backlinks-pane" class="backlinks-pane right-sidebar-panel">
+
+</div>
+
+<script>
+    import siteMap from "./../../public/sitemap.json";
+    import {getRelativePath} from "./util.ts";
+
+    const backlinksPane = document.getElementById('backlinks-pane');
+
+    const sitemap_entry = siteMap[location.pathname.slice(1, -1) as keyof typeof siteMap];
+    if (sitemap_entry.links) {
+        const backlinksHeader = document.createElement('h3');
+        backlinksHeader.innerText = "Backlinks";
+        backlinksPane!.appendChild(backlinksHeader);
+
+        for (const link of sitemap_entry.links) {
+            const backlink = document.createElement('a');
+            backlink.href = getRelativePath(location.pathname, link);
+            backlink.innerText = siteMap[link as keyof typeof siteMap].title;
+            backlink.classList.add('backlink');
+            backlinksPane!.appendChild(backlink);
+        }
+    }
+</script>

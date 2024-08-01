@@ -2,8 +2,11 @@
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 import Graph from "./Graph.astro";
+import Backlinks from "./Backlinks.astro";
 ---
 
 <Graph/>
 
 <Default {...Astro.props}><slot /></Default>
+
+<Backlinks/>
