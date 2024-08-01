@@ -50,6 +50,8 @@ text {
 }
 
 .graph {
+    margin: 0 1em;
+
     & > h3 {
         font-size: 1rem;
         margin: 0;
@@ -119,10 +121,13 @@ text {
             transform: translate(-50%, -50%);
             height: 60vh;
             width: 50vw;
-
-            @media all and (max-width: $fullPageWidth) {
-                width: 90%;
-            }
         }
+    }
+}
+
+@media (max-width: 1152px) {
+    .main-frame > div {
+        display: flex;
+        flex-direction: column-reverse;
     }
 }

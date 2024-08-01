@@ -37,7 +37,7 @@
         centerForce: 0.3,
         linkDistance: 30,
         fontSize: 0.6,
-        opacityScale: 1,
+        opacityScale: 1.3,
         showTags: true,
         removeTags: [],
         focusOnHover: false,
@@ -500,7 +500,7 @@
 </script>
 
 <div class="graph">
-    <h3>Graph</h3>
+    <h3>Graph View</h3>
 
     <div class="graph-outer">
         <div bind:this={regularGraphContainer} id="graph-container"></div>
