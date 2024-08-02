@@ -13,12 +13,12 @@
     const backlinksPane = document.getElementById('backlinks-pane');
 
     const sitemap_entry = siteMap[location.pathname.slice(1, -1) as keyof typeof siteMap];
-    if (sitemap_entry.links) {
+    if (sitemap_entry.backlinks.length > 0) {
         const backlinksHeader = document.createElement('h3');
         backlinksHeader.innerText = "Backlinks";
         backlinksPane!.appendChild(backlinksHeader);
 
-        for (const link of sitemap_entry.links) {
+        for (const link of sitemap_entry.backlinks) {
             const backlink = document.createElement('a');
             backlink.href = getRelativePath(location.pathname, link);
             backlink.innerText = siteMap[link as keyof typeof siteMap].title;

@@ -20,6 +20,7 @@ function siteMapDict() {
                     title: path.split("/").pop(),
                     content: "",
                     links: [],
+                    backlinks: [],
                     tags: []
                 };
             }
@@ -37,7 +38,7 @@ export default function sitemap() {
     return {
         name: "astro-sitemap-plugin",
         hooks: {
-            "astro:build:start": async ({ logger }) => {
+            "astro:server:start": async ({ logger }) => {
                 logger.info("Mapping site links...");
                 const sitemap = siteMapDict();
                 const DOCS_ROOT = "src/content/docs";
@@ -50,32 +51,31 @@ export default function sitemap() {
                     const entry_name = path.slice(DOCS_ROOT.length + 1).toLowerCase();
                     const sitemap_entry = sitemap[entry_name];
                     sitemap_entry.title = path.split("/").pop();
-                    let new_links = [];
                     if (links) {
-                        for (const link of links) {
-                            const url = link.match(/\((.*?)\)/)[1];
-                            if (!url.startsWith("http")) {
-                                new_links.push(url.slice(1));
-                            }
-                        }
-                        new_links = new_links
+                        sitemap_entry.links = [...new Set(links
+                            .reduce((acc, link) => {
+                                const url = link.match(/\((.*?)\)/)[1];
+                                if (!url.startsWith("http"))
+                                    acc.push(url.slice(1));
+                                return acc;
+                            }, [])
                             .map((link) => link
                                 .split("/").slice(0, -1).join("/")
                                 .replace(/^.\/(\.\.\/)+/, "")
                             )
-                            .filter(link => link !== entry_name);
-                        new_links = [...new Set(new_links)];
+                            .filter(link => link !== entry_name)
+                        )];
+
                         // Create backlinks
-                        for (const link of new_links)
-                            sitemap[link].links.push(entry_name);
-                        sitemap_entry.links = [...new Set([...sitemap_entry.links, ...new_links])];
+                        for (const link of sitemap_entry.links)
+                            sitemap[link].backlinks.push(entry_name);
                     }
                     sitemap[entry_name] = sitemap_entry;
                 }
 
                 for (const entry of Object.keys(sitemap)) {
                     const sitemap_entry = sitemap[entry];
-                    sitemap_entry.links = [...new Set(sitemap_entry.links)];
+                    sitemap_entry.backlinks = [...new Set(sitemap_entry.backlinks)];
                     sitemap[entry] = sitemap_entry;
                 }
                 await fs.promises.writeFile("./public/sitemap.json", JSON.stringify(sitemap, null, 2));

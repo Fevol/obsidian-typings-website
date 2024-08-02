@@ -116,6 +116,7 @@
     type ContentDetails = {
         title: string
         links: string[]
+        backlinks: string[]
         tags: string[]
         content: string
         richContent?: string
@@ -184,7 +185,7 @@
 
         const validLinks = new Set(data.keys())
         for (const [source, details] of data.entries()) {
-            const outgoing = details.links ?? []
+            const outgoing = (details.links ?? []).concat(details.backlinks ?? [])
             for (const dest of outgoing) {
                 if (validLinks.has(dest)) {
                     links.push({source: source, target: dest})
