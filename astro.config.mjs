@@ -45,10 +45,10 @@ export default defineConfig({
                     },
                     typeDoc: {
                         plugin: [
-                            './plugins/resolve-source-plugin.js',
-                            './plugins/badge-addition-plugin.js',
+                            'typedoc-plugin-mdn-links',
                             'typedoc-plugin-frontmatter',
-                            'typedoc-plugin-mdn-links'
+                            './plugins/resolve-source-plugin.js',
+                            './plugins/badge-addition-plugin.js'
                         ],
                         theme: 'starlight-typedoc',
                         githubPages: false,

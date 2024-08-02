@@ -38,8 +38,7 @@ export default function sitemap() {
         name: "astro-sitemap-plugin",
         hooks: {
             "astro:build:start": async ({ logger }) => {
-                // do something
-                logger.info("Integration ready.");
+                logger.info("Mapping site links...");
                 const sitemap = siteMapDict();
                 const DOCS_ROOT = "src/content/docs";
                 for await (const p of walk(DOCS_ROOT)) {
@@ -80,6 +79,7 @@ export default function sitemap() {
                     sitemap[entry] = sitemap_entry;
                 }
                 await fs.promises.writeFile("./public/sitemap.json", JSON.stringify(sitemap, null, 2));
+                logger.info("Site links mapped.");
             }
         }
     };
