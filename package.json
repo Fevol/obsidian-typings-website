@@ -24,7 +24,8 @@
     "typedoc-plugin-frontmatter": "^1.0.0",
     "typedoc-plugin-markdown": "4.1.0",
     "typedoc-plugin-mdn-links": "^3.2.6",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",

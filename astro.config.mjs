@@ -3,7 +3,7 @@ import svelte from '@astrojs/svelte'
 import {defineConfig} from 'astro/config'
 import starlightTypeDoc, {typeDocSidebarGroup} from 'starlight-typedoc'
 import sitemap from "./integrations/astro-sitemap"
-
+import todoRenderer from './remark-plugins/todo-renderer'
 
 
 export default defineConfig({
@@ -48,7 +48,8 @@ export default defineConfig({
                             'typedoc-plugin-mdn-links',
                             'typedoc-plugin-frontmatter',
                             './plugins/resolve-source-plugin.js',
-                            './plugins/badge-addition-plugin.js'
+                            './plugins/badge-addition-plugin.js',
+                            './plugins/custom-md-render-plugin.js',
                         ],
                         theme: 'starlight-typedoc',
                         githubPages: false,
@@ -60,6 +61,9 @@ export default defineConfig({
             ]
         }),
         sitemap()
-    ]
+    ],
+    markdown: {
+        remarkPlugins: [todoRenderer]
+    }
 })
 
