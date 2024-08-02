@@ -105,7 +105,7 @@ for (let [augmentationsDirName, augmentation] of augmentations) {
             docs: [{
                 tags: [{
                     tagName: "source",
-                    text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/obsidian.d.ts`
+                    text: `node_modules/obsidian/obsidian.d.ts`
                 }]
             }]
         })
@@ -133,7 +133,7 @@ typesSourceFile.addModule({
     docs: [{
         tags: [{
             tagName: "source",
-            text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/canvas.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
+            text: `node_modules/obsidian/canvas.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
         }]
     }]
 });
@@ -146,7 +146,7 @@ typesSourceFile.addModule({
     docs: [{
         tags: [{
             tagName: "source",
-            text: `obsidianmd/obsidian-api/blob/${obsidian_package.version}/publish.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
+            text: `node_modules/obsidian/publish.d.ts#` + (typesSourceFile.getEndLineNumber() + 2)
         }]
     }]
 });
