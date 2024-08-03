@@ -11,6 +11,18 @@
     import * as d3 from "d3"
     import sitemapFile from "./../../public/sitemap.json";
     import {getRelativePath} from "./util.ts";
+    import ContextMenu from './util/ContextMenu.svelte';
+
+    import fullscreen from "../assets/svgs/fullscreen.svg?raw"
+    import arrow from "../assets/svgs/arrow.svg?raw"
+    import line from "../assets/svgs/line.svg?raw"
+    import graph0 from "../assets/svgs/graph-0.svg?raw"
+    import graph1 from "../assets/svgs/graph-1.svg?raw"
+    import graph2 from "../assets/svgs/graph-2.svg?raw"
+    import graph3 from "../assets/svgs/graph-3.svg?raw"
+    import graph4 from "../assets/svgs/graph-4.svg?raw"
+    import graph5 from "../assets/svgs/graph-5.svg?raw"
+
 
     type GraphOptions = {
         drag: boolean,
@@ -26,14 +38,15 @@
         showTags: boolean,
         removeTags: string[],
         focusOnHover: boolean,
+        renderArrows: boolean,
     }
 
-    const defaultGraphOptions: GraphOptions = {
+    const defaultOptions = {
         drag: true,
         zoom: true,
-        depth: 1,
+        depth: 2,
         scale: 1.1,
-        autoScale: false,
+        autoScale: true,
         repelForce: 0.5,
         centerForce: 0.3,
         linkDistance: 30,
@@ -41,27 +54,20 @@
         opacityScale: 1.3,
         showTags: true,
         removeTags: [],
-        focusOnHover: false,
-    };
-
-    const localGraphOptions: Partial<GraphOptions> = {
-        autoScale: true,
-    };
-    const globalGraphSettings: Partial<GraphOptions> = {
-        depth: -1,
-        scale: 0.8,
-        repelForce: 0.055,
-        centerForce: 1.85,
-        linkDistance: 30,
         focusOnHover: true,
+        renderArrows: false,
     };
+    const config = $state(Object.assign({}, defaultOptions, JSON.parse(sessionStorage.getItem("graph-config") ?? "{}")));
+    let renderArrowAction: HTMLElement | null = null;
+    let updateGraphDepthAction: HTMLElement | null = null;
 
     let isFullscreen = false;
-    let isGlobalGraph = false;
+    $effect(() => {
+        sessionStorage.setItem("graph-config", JSON.stringify(config))
+    });
 
     let regularGraphContainer: HTMLElement;
     let fullscreenGraphContainer: HTMLElement;
-
 
     const sessionStorageKey = "graph-visited"
 
@@ -107,12 +113,6 @@
         document.addEventListener("keydown", esc)
     }
 
-    function removeAllChildren(node: HTMLElement) {
-        while (node.firstChild) {
-            node.removeChild(node.firstChild)
-        }
-    }
-
     type ContentDetails = {
         title: string
         links: string[]
@@ -145,14 +145,33 @@
         sessionStorage.setItem(sessionStorageKey, JSON.stringify([...visited]))
     }
 
+    function updateGraph() {
+        if (isFullscreen) {
+            const svg = regularGraphContainer.children[0] as SVGElement;
+            svg.setAttribute("height", Math.max(fullscreenGraphContainer.offsetHeight, 250).toString())
+            svg.setAttribute("width", fullscreenGraphContainer.offsetWidth.toString())
+
+            fullscreenGraphContainer.replaceChildren(svg)
+
+            regularGraphContainer.replaceChildren();
+
+        } else {
+            const svg = fullscreenGraphContainer.children[0] as SVGElement;
+            svg.setAttribute("height", Math.max(regularGraphContainer.offsetHeight, 250).toString())
+            svg.setAttribute("width", regularGraphContainer.offsetWidth.toString())
+
+            regularGraphContainer.replaceChildren(svg)
+
+            fullscreenGraphContainer.replaceChildren();
+        }
+    }
+
     async function renderGraph() {
-        const config = Object.assign({}, defaultGraphOptions, isGlobalGraph ? globalGraphSettings : localGraphOptions);
-        const graph = isFullscreen ? fullscreenGraphContainer.children[0] as HTMLElement : regularGraphContainer;
+        const graph = isFullscreen ? fullscreenGraphContainer as HTMLElement : regularGraphContainer;
         let slug = location.pathname;
 
         const visited = getVisited()
-        if (!graph) return
-        removeAllChildren(graph)
+        graph.replaceChildren()
 
         let {
             drag: enableDrag,
@@ -167,7 +186,11 @@
             removeTags,
             showTags,
             focusOnHover,
+            renderArrows,
         } = config
+        if (depth === 5) {
+            depth = -1;
+        }
 
         if (slug.startsWith("/"))
             slug = slug.slice(1)
@@ -185,7 +208,7 @@
 
         const validLinks = new Set(data.keys())
         for (const [source, details] of data.entries()) {
-            const outgoing = (details.links ?? []).concat(details.backlinks ?? [])
+            const outgoing = details.links ?? [];
             for (const dest of outgoing) {
                 if (validLinks.has(dest)) {
                     links.push({source: source, target: dest})
@@ -270,22 +293,43 @@
             .selectAll("line")
             .data(graphData.links)
             .join("line")
-            .attr("class", "link")
-            .attr("stroke", "var(--lightgray)")
-            .attr("stroke-width", 1)
+            .attr("class", "graph-link")
+            .attr("marker-end", "url(#graph-link-head)");
+
+        // Define arrowheads for each color
+        const defs = svg.append("svg:defs")
+            .attr("display", config.renderArrows ? "block" : "none")
+        function marker(className: string) {
+            defs.append("svg:marker")
+                .attr("id", className)
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 15)
+                .attr("refY", 0)
+                .attr("markerWidth", 5)
+                .attr("markerHeight", 5)
+                .attr("orient", "auto")
+                .attr("markerUnits", "userSpaceOnUse")
+                .attr("class", "graph-link-arrow " + className)
+                .append("svg:path")
+                .attr("d", "M0,-5L10,0L0,5");
+            return "url(" + className + ")";
+        }
+
+
+        marker("graph-link-head")
+        marker("graph-link-head-hover")
 
         // SVG groups
         const graphNode = svg.append("g").selectAll("g").data(graphData.nodes).enter().append("g")
 
         // Calculate color
-        const color = (d: NodeData) => {
-            const isCurrent = d.id === slug
-            if (isCurrent) {
-                return "var(--secondary)"
+        const determineClass = (d: NodeData) => {
+            if (d.id === slug) {
+                return "graph-node graph-node-current"
             } else if (visited.has(d.id) || d.id.startsWith("tags/")) {
-                return "var(--tertiary)"
+                return "graph-node graph-node-visited"
             } else {
-                return "var(--gray)"
+                return "graph-node"
             }
         }
 
@@ -323,13 +367,12 @@
 
         let connectedNodes: string[] = []
 
-        // draw individual nodes
+        // Draw individual nodes
         const node = graphNode
             .append("circle")
-            .attr("class", "node")
+            .attr("class", determineClass)
             .attr("id", (d) => d.id)
             .attr("r", nodeRadius)
-            .attr("fill", color)
             .style("cursor", "pointer")
             .on("click", (_, d) => {
                 addToVisited(d.id)
@@ -338,98 +381,65 @@
             .on("mouseover", function (_, d) {
                 const currentId = d.id
                 const linkNodes = d3
-                    .selectAll(".link")
+                    .selectAll(".graph-link")
                     .filter((d: any) => d.source.id === currentId || d.target.id === currentId)
 
                 if (focusOnHover) {
-                    // fade out non-neighbour nodes
-                    connectedNodes = linkNodes.data().flatMap((d: any) => [d.source.id, d.target.id])
-
-                    d3.selectAll<HTMLElement, NodeData>(".link")
-                        .transition()
-                        .duration(200)
-                        .style("opacity", 0.2)
-                    d3.selectAll<HTMLElement, NodeData>(".node")
+                    connectedNodes = linkNodes.data()
+                        .flatMap((d) => [d.source.id, d.target.id])
+                    d3.selectAll(".graph-link")
+                        .filter((d: any) => d.source.id !== currentId && d.target.id !== currentId)
+                        .classed("graph-faded", true)
+                    d3.selectAll<HTMLElement, NodeData>(".graph-node")
                         .filter((d) => !connectedNodes.includes(d.id))
-                        .transition()
-                        .duration(200)
-                        .style("opacity", 0.2)
-
-                    d3.selectAll<HTMLElement, NodeData>(".node")
-                        .filter((d) => !connectedNodes.includes(d.id))
-                        .nodes()
-                        .map((it) => d3.select(it.parentNode as HTMLElement).select("text"))
-                        .forEach((it) => {
-                            let opacity = parseFloat(it.style("opacity"))
-                            it.transition()
-                                .duration(200)
-                                .attr("opacityOld", opacity)
-                                .style("opacity", Math.min(opacity, 0.2))
-                        })
+                        .classed("graph-faded", true)
                 }
 
-                // highlight links
-                linkNodes.transition().duration(200).attr("stroke", "var(--gray)").attr("stroke-width", 1)
+                // Highlight adjacent links, label and node, hide non-adjacent links and nodes
+                linkNodes
+                    .classed("graph-link-hover", true)
+                    .attr("marker-end", "url(#graph-link-head-hover)")
 
-                const bigFont = fontSize * 1.5;
-
-                // show text for self
                 const parent = this.parentNode as HTMLElement
                 d3.select<HTMLElement, NodeData>(parent)
-                    .raise()
                     .select("text")
-                    .transition()
-                    .duration(200)
-                    .attr("opacityOld", d3.select(parent).select("text").style("opacity"))
-                    .style("opacity", 1)
-                    .style("font-size", bigFont + "em")
+                    .classed("graph-label-hover", true)
+
+                d3.selectAll(".graph-label")
+                    .filter((d: any) => !connectedNodes.includes(d.id))
+                    .classed("graph-faded", true)
             })
             .on("mouseleave", function (_, d) {
-                if (focusOnHover) {
-                    d3.selectAll<HTMLElement, NodeData>(".link").transition().duration(200).style("opacity", 1)
-                    d3.selectAll<HTMLElement, NodeData>(".node").transition().duration(200).style("opacity", 1)
-
-                    d3.selectAll<HTMLElement, NodeData>(".node")
-                        .filter((d) => !connectedNodes.includes(d.id))
-                        .nodes()
-                        .map((it) => d3.select(it.parentNode as HTMLElement).select("text"))
-                        .forEach((it) => it.transition().duration(200).style("opacity", it.attr("opacityOld")))
-                }
-                const currentId = d.id
-                const linkNodes = d3
-                    .selectAll(".link")
-                    .filter((d: any) => d.source.id === currentId || d.target.id === currentId)
-
-                linkNodes.transition().duration(200).attr("stroke", "var(--lightgray)")
-
                 const parent = this.parentNode as HTMLElement
                 d3.select<HTMLElement, NodeData>(parent)
                     .select("text")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", d3.select(parent).select("text").attr("opacityOld"))
-                    .style("font-size", fontSize + "em")
+                    .classed("graph-label-hover", false)
+                d3.selectAll(".graph-link")
+                    .classed("graph-faded", false)
+                    .classed("graph-link-hover", false)
+                    .attr("marker-end", "url(#graph-link-head)")
+                d3.selectAll(".graph-node")
+                    .classed("graph-faded", false)
+                d3.selectAll(".graph-label")
+                    .classed("graph-faded", false)
             })
             // @ts-ignore
             .call(drag(simulation))
 
-        // make tags hollow circles
+        // Make tags hollow circles
         node
             .filter((d) => d.id.startsWith("tags/"))
-            .attr("stroke", color)
-            .attr("stroke-width", 2)
-            .attr("fill", "var(--light)")
+            .classed("graph-node-tag", true)
 
         // Draw labels
         const labels = graphNode
             .append("text")
             .attr("dx", 0)
-            .attr("dy", (d) => -nodeRadius(d) + "px")
+            .attr("dy", (d) => nodeRadius(d) + 8 + "px")
             .attr("text-anchor", "middle")
             .text((d) => d.text)
             .style("opacity", (opacityScale - 1) / 3.75)
-            .style("pointer-events", "none")
-            .style("font-size", fontSize + "em")
+            .attr("class", "graph-label")
             .raise()
             // @ts-expect-error Incompatible types
             .call(drag(simulation))
@@ -454,7 +464,7 @@
             )
         }
 
-        // progress the simulation
+        // Progress the simulation
         simulation.on("tick", () => {
             link
                 .attr("x1", (d: any) => d.source.x)
@@ -466,72 +476,95 @@
         })
     }
 
-    async function renderFullscreenGraph() {
-        isFullscreen = true
-        const sidebar = fullscreenGraphContainer?.closest(".sidebar") as HTMLElement
-        fullscreenGraphContainer?.classList.add("active")
-        if (sidebar)
-            sidebar.style.zIndex = "1"
+    function renderFullscreenGraph() {
+        isFullscreen = !isFullscreen
+        fullscreenGraphContainer.parentElement!.parentElement!.classList.toggle("modal-active", isFullscreen)
+        updateGraph()
+    }
 
-        await renderGraph()
-        function hideGlobalGraph() {
-            isFullscreen = false
-            fullscreenGraphContainer?.classList.remove("active")
-            const graph = fullscreenGraphContainer.children[0] as HTMLElement
-            if (sidebar) sidebar.style.zIndex = "unset"
-            if (!graph) return
-            removeAllChildren(graph)
-        }
-        registerEscapeHandler(fullscreenGraphContainer, hideGlobalGraph)
+    function updateGraphDepth() {
+        config.depth = (config.depth + 1) % 6
+
+        renderGraph()
+    }
+
+    function updateArrowStyle(renderArrows = !config.renderArrows) {
+        if (renderArrows === config.renderArrows) return
+
+        config.renderArrows = renderArrows;
+        const currentContainer = isFullscreen ? fullscreenGraphContainer : regularGraphContainer
+        const defs = currentContainer.getElementsByTagName("defs")[0];
+        defs.style.display = config.renderArrows ? "block" : "none"
     }
 
     onMount(async () => {
         await renderGraph()
+        registerEscapeHandler(fullscreenGraphContainer.parentElement!.parentElement!, () => {
+            isFullscreen = false
+            fullscreenGraphContainer.parentElement!.parentElement!.classList.remove("modal-active")
+            updateGraph()
+        })
     })
 </script>
+
+
+{#snippet graphActions()}
+    <div class="graph-action-container">
+        <div class="graph-action svg-embed" onclick={() => updateArrowStyle()} bind:this={renderArrowAction}>
+            {@html config.renderArrows ? arrow : line}
+        </div>
+
+        <ContextMenu
+                bind:target={renderArrowAction}
+                menuItems={[
+                { text: "Show arrows", icon: arrow, onClick: () => updateArrowStyle(true) },
+                { text: "Show lines", icon: line, onClick: () => updateArrowStyle(false) },
+            ]}
+        />
+
+        <div class="graph-action svg-embed" onclick={renderFullscreenGraph}>
+            {@html fullscreen}
+        </div>
+
+        <div class="graph-action svg-embed" onclick={updateGraphDepth} bind:this={updateGraphDepthAction}>
+            {@html eval(`graph${config.depth}`)}
+        </div>
+
+        <ContextMenu
+                bind:target={updateGraphDepthAction}
+                menuItems={
+                    Array.from({length: 6}, (_, i) => ({
+                        text: i === 5 ?
+                         "Show Entire Graph" :
+                          i === 0 ?
+                           "Show Only Current" :
+                            i === 1 ?
+                            "Show Adjacent" :
+                            `Show Distance ${i}`,
+                        icon: eval(`graph${i}`),
+                        onClick: () => {
+                            config.depth = i
+                            renderGraph()
+                        }
+                    }))
+                 }
+        />
+    </div>
+
+{/snippet}
 
 <div class="graph">
     <h3>Graph View</h3>
 
     <div class="graph-outer">
-        <div bind:this={regularGraphContainer} id="graph-container"></div>
-
-        <div class="graph-action-container">
-            <svg class="graph-action" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 24 24"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 on:click={renderFullscreenGraph}
-            >
-                <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
-                <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
-                <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
-                <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
-            </svg>
-
-            <svg class="graph-action" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 55 55"
-                 fill="currentColor" xml:space="preserve" aria-label="Reveal Global Graph"
-                 on:click={() => {
-                        isGlobalGraph = !isGlobalGraph
-                        renderGraph()
-                 }}
-            >
-                <path
-                        d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
-            s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
-            c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
-            C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
-            c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
-            v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
-            s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
-            C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
-            S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
-            s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
-            s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"
-                ></path>
-            </svg>
-        </div>
+        <div bind:this={regularGraphContainer}></div>
+        {@render graphActions()}
     </div>
 
-    <div bind:this={fullscreenGraphContainer} id="fullscreen-graph-outer">
-        <div id="fullscreen-graph-container"></div>
+    <div class="fullscreen-graph-outer modal">
+        <div class="fullscreen-graph-window">
+            <div class="fullscreen-graph-container" bind:this={fullscreenGraphContainer}></div>
+            {@render graphActions()}
+        </div>
     </div>
 </div>
