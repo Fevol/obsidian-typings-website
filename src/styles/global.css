@@ -130,6 +130,7 @@
     font-size: var(--graph-text-sml);
     pointer-events: none;
     transition: opacity 0.1s ease, font-size 0.3s ease;
+    user-select: none;
 }
 
 .graph-label-hover {
