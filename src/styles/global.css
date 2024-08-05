@@ -169,22 +169,6 @@ text {
 }
 
 
-.modal {
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100%;
-    backdrop-filter: blur(4px);
-    overflow: hidden;
-}
-
-.modal.modal.modal-active {
-    display: inline-block;
-}
-
-
 *[aria-label] {
     position: relative;
 }
@@ -199,7 +183,7 @@ text {
     white-space: nowrap;
     top: calc(100% + 4px);
     left: -50px;
-    z-index: 1000000000;
+    z-index: 1000;
 }
 
 .group-label {
@@ -209,6 +193,17 @@ text {
 
 .svg-embed {
     display: flex;
+}
+
+
+body:has(.background-blur) {
+    #starlight__sidebar {
+        z-index: -1;
+    }
+
+    .header {
+        z-index: -1;
+    }
 }
 
 .graph {
@@ -222,7 +217,9 @@ text {
         display: flex;
         flex-direction: row;
         gap: 0.2rem;
-        margin: 0.3rem;
+        padding: 0.3rem;
+        background-color: color-mix(in srgb, var(--sl-color-bg) 80%, transparent);
+        border-radius: 0 0 0 16px;
 
         .graph-action {
             color: var(--interactable-color-hover);
@@ -239,7 +236,7 @@ text {
         }
     }
 
-    & > .graph-outer {
+    .graph-outer {
         border-radius: 5px;
         border: 1px solid var(--sl-element-border);
         box-sizing: border-box;
@@ -255,31 +252,45 @@ text {
         }
     }
 
-    & > .fullscreen-graph-outer  {
-        display: none;
+    .background-blur {
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100%;
+        backdrop-filter: blur(4px);
+        display: inline-block;
+        overflow: hidden;
+        /*transition        : all 0.2s linear;*/
+        /*-moz-transition   : all 0.2s linear;*/
+        /*-webkit-transition: all 0.2s linear;*/
+        /*-o-transition     : all 0.2s linear;*/
+    }
 
+    .background-blur .graph-outer {
         .graph-action > svg {
             width: var(--icon-size-lrg);
             height: var(--icon-size-lrg);
         }
 
-        & > .fullscreen-graph-window {
-            border: 1px solid var(--sl-element-border);
-            background-color: var(--graph-fullscreen-bg);
-            border-radius: 5px;
-            box-sizing: border-box;
 
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            height: 60vh;
-            width: 50vw;
+        border: 1px solid var(--sl-element-border);
+        background-color: var(--graph-fullscreen-bg);
+        border-radius: 5px;
+        box-sizing: border-box;
 
-            & > .fullscreen-graph-container {
-                width: 100%;
-                height: 100%;
-            }
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 60vh;
+        width: 50vw;
+        z-index: 9999;
+
+        & > .graph-container {
+            width: 100%;
+            height: 100%;
         }
     }
 }

@@ -82,6 +82,7 @@
 
     import * as d3 from "d3"
     import {getRelativePath} from "./util.ts";
+    import {untrack} from "svelte";
 
     let {
         siteData = {},
@@ -97,14 +98,20 @@
     let height = $derived(Math.max(250, h));
     let scale = $state(config.scale);
     let viewBox = $derived([-width / 2 / scale, -height / 2 / scale, width / scale, height / scale]);
-    $inspect(scale, config.depth)
 
     const sessionStorageKey = "graph-visited";
 
+    function explicitEffect(fn: () => void, depsFn: () => any[]) {
+        $effect(() => {
+            depsFn();
+            untrack(fn);
+        });
+    }
 
-    $effect(() => {
-         constructGraph(siteData);
-    });
+    explicitEffect(
+        () => { constructGraph(siteData) },
+        () => [siteData, config.depth]
+    );
 
     $effect(() => {
         if (defsElement)
@@ -146,6 +153,8 @@
     }
 
     function constructGraph(siteData: Record<string, ContentDetails> = {}) {
+        svgContainer.replaceChildren();
+
         if (!Object.keys(siteData).length) return;
 
         let slug = location.pathname;
@@ -159,8 +168,9 @@
             ]),
         )
 
-        if (config.depth >= 5)
-            config.depth = -1;
+        let depth = config.depth;
+        if (depth >= 5)
+            depth = -1;
 
         if (slug.startsWith("/"))
             slug = slug.slice(1)
@@ -191,14 +201,15 @@
 
         const neighbourhood = new Set<string>()
         const wl: (string | "__SENTINEL")[] = [slug, "__SENTINEL"]
-        let depth = config.depth;
         if (depth >= 0) {
             while (depth >= 0 && wl.length > 0) {
-                // compute neighbours
+                // Compute neighbours
                 const cur = wl.shift()!
                 if (cur === "__SENTINEL") {
                     depth--
                     wl.push("__SENTINEL")
+                } else if (neighbourhood.has(cur)) {
+                    continue;
                 } else {
                     neighbourhood.add(cur)
                     const outgoing = links.filter((l) => l.source === cur)

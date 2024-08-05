@@ -8,7 +8,7 @@
      */
 
     import Graph from "./Graph.svelte";
-    import { type GraphConfig, defaultConfig } from "./Graph.svelte";
+    import {type GraphConfig, defaultConfig} from "./Graph.svelte";
 
     import ContextMenu from './util/ContextMenu.svelte';
 
@@ -26,13 +26,12 @@
     import Modal from "./util/Modal.svelte";
     import sitemapFile from "./../../public/sitemap.json";
 
-
     const config: GraphConfig = $state(Object.assign({}, defaultConfig, JSON.parse(sessionStorage.getItem("graph-config") ?? "{}")));
     let renderArrowAction: HTMLElement | null = null;
     let updateGraphDepthAction: HTMLElement | null = null;
 
-    let width;
-    let height;
+    let width = $state(250);
+    let height = $state(250);
 
     let isFullscreen = $state(false);
     let showSettings = false;
@@ -43,39 +42,51 @@
         sessionStorage.setItem("graph-config", JSON.stringify(config));
     });
 
-    // function registerEscapeHandler(outsideContainer: HTMLElement | null, cb: () => void) {
-    //     if (!outsideContainer) return
-    //
-    //     function click(this: HTMLElement, e: HTMLElementEventMap["click"]) {
-    //         if (e.target !== this) return
-    //         e.preventDefault()
-    //         cb()
-    //     }
-    //
-    //     function esc(e: HTMLElementEventMap["keydown"]) {
-    //         if (!e.key.startsWith("Esc")) return
-    //         e.preventDefault()
-    //         cb()
-    //     }
-    //
-    //     outsideContainer?.addEventListener("click", click)
-    //     document.addEventListener("keydown", esc)
-    // }
-
-    function toggleFullscreenGraph() {
-        isFullscreen = !isFullscreen
-    }
-
     function showGraphSettings() {
         showSettings = true;
     }
+
+    function registerEscapeHandler(node: HTMLElement) {
+        const handleClick = (e: HTMLElementEventMap["click"]) => {
+            if (node && !node.contains(e.target) && !e.defaultPrevented)
+                node.dispatchEvent(new CustomEvent('focusaway', node));
+        }
+
+        const handleEsc = (e: HTMLElementEventMap["keydown"]) => {
+            if (!e.key.startsWith("Esc")) return;
+            e.preventDefault();
+            node.dispatchEvent(new CustomEvent('focusaway', node));
+        }
+
+        function removeHandlers() {
+            document.removeEventListener('click', handleClick, true);
+            document.removeEventListener('keydown', handleEsc, true);
+        }
+
+        $effect(() => {
+            if (!isFullscreen) {
+                removeHandlers();
+            } else {
+                document.addEventListener('click', handleClick, true);
+                document.addEventListener('keydown', handleEsc, true);
+            }
+        });
+
+        return {
+            destroy() {
+                removeHandlers()
+            }
+        }
+    }
+
 
 </script>
 
 
 {#snippet graphActions()}
     <div class="graph-action-container">
-        <div class="graph-action svg-embed" onclick={() => { config.renderArrows = !config.renderArrows }} bind:this={renderArrowAction}>
+        <div class="graph-action svg-embed" onclick={() => { config.renderArrows = !config.renderArrows }}
+             bind:this={renderArrowAction}>
             {@html config.renderArrows ? arrow : line}
         </div>
 
@@ -87,11 +98,12 @@
             ]}
         />
 
-        <div class="graph-action svg-embed" onclick={toggleFullscreenGraph}>
+        <div class="graph-action svg-embed" onclick={() => { isFullscreen = !isFullscreen }}>
             {@html fullscreen}
         </div>
 
-        <div class="graph-action svg-embed" onclick={() => { (config.depth + 1) % 6 }} bind:this={updateGraphDepthAction}>
+        <div class="graph-action svg-embed" onclick={() => { config.depth = (config.depth + 1) % 6 }}
+             bind:this={updateGraphDepthAction}>
             {@html eval(`graph${config.depth}`)}
         </div>
 
@@ -132,21 +144,27 @@
 <div class="graph">
     <h3>Graph View</h3>
 
+    {#if isFullscreen}
+        <div class="graph-outer">
+            {@render graphActions()}
+            {@render settingsModal()}
+            <div class="graph-container">
+            </div>
+        </div>
+    {/if}
 
-    <div class="graph-outer">
-        {@render graphActions()}
-        {@render settingsModal()}
-        <div class="graph-container" bind:clientHeight={height} bind:clientWidth={width}>
-            <Graph
-                    siteData={sitemapFile} w={width} h={height} config={config}
-            />
+    <div class:background-blur={isFullscreen}>
+        <div class="graph-outer"
+             bind:clientHeight={height} bind:clientWidth={width}
+             use:registerEscapeHandler={isFullscreen} onfocusaway={() => { isFullscreen = false }}
+        >
+            {@render graphActions()}
+            {@render settingsModal()}
+            <div class="graph-container">
+                <Graph
+                        siteData={sitemapFile} w={width} h={height} config={config}
+                />
+            </div>
         </div>
     </div>
-
-    <!--    <div class="fullscreen-graph-outer fullscreen-modal" class:fullscreen-modal-active={isFullscreen}>-->
-    <!--        <div class="fullscreen-graph-window">-->
-    <!--            {@render graphActions()}-->
-    <!--            {@render settingsModal()}-->
-    <!--        </div>-->
-    <!--    </div>-->
 </div>
