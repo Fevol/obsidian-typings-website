@@ -220,6 +220,7 @@ body:has(.background-blur) {
         padding: 0.3rem;
         background-color: color-mix(in srgb, var(--sl-color-bg) 80%, transparent);
         border-radius: 0 0 0 16px;
+        backdrop-filter: blur(4px);
 
         .graph-action {
             color: var(--interactable-color-hover);
@@ -343,9 +344,9 @@ body:has(.background-blur) {
 
 .menu {
     display: inline-flex;
+    background-color: var(--sl-color-context-menu);
     border: 1px var(--sl-color-gray-6) solid;
     width: 170px;
-    background-color: var(--sl-color-context-menu);
     border-radius: 10px;
     overflow: hidden;
     flex-direction: column;
@@ -379,3 +380,39 @@ body:has(.background-blur) {
     font-weight: 600;
     font-size: var(--sl-text-sm);
 }
+
+.popup {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    /*background-color: var(--sl-color-context-menu);*/
+    background-color: color-mix(in srgb, var(--sl-color-bg) 50%, transparent);
+    border: 1px var(--sl-color-gray-6) solid;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.graph-settings-item {
+    display: flex;
+    flex-direction: row;
+    font-size: var(--sl-text-sm);
+    justify-content: space-between;
+
+    input {
+        width: 40%;
+    }
+}
+
+.graph-settings-header {
+    display: flex;
+    gap: 1rem;
+}
+
+.graph-settings-label {
+    font-weight: 600;
+}
+
+.graph-settings-value {
+    font-weight: 400;
+}
+

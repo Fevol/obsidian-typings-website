@@ -1,17 +1,11 @@
 <script lang="ts">
-    let {showModal = $bindable()}: { showModal: boolean } = $props();
+    import { clickOutside } from "../util";
 
+    let {showModal = $bindable()}: { showModal: boolean } = $props();
 </script>
 
 {#if showModal}
-    <div class="modal">
+    <div class="popup" use:clickOutside onclick_outside={() => { showModal = false }}>
         <slot/>
     </div>
 {/if}
-
-
-
-
-<svelte:window on:contextmenu|preventDefault
-               onclick={(_) => { showModal = false; }}
-/>

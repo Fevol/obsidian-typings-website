@@ -13,8 +13,10 @@
     import ContextMenu from './util/ContextMenu.svelte';
 
 
-    import fullscreen from "../assets/svgs/fullscreen.svg?raw"
+    import maximize from "../assets/svgs/maximize.svg?raw"
+    import minimize from "../assets/svgs/minimize.svg?raw"
     import arrow from "../assets/svgs/arrow.svg?raw"
+    import focus from "../assets/svgs/focus.svg?raw"
     import line from "../assets/svgs/line.svg?raw"
     import graph0 from "../assets/svgs/graph-0.svg?raw"
     import graph1 from "../assets/svgs/graph-1.svg?raw"
@@ -30,21 +32,16 @@
     let renderArrowAction: HTMLElement | null = null;
     let updateGraphDepthAction: HTMLElement | null = null;
 
+    let graph: Graph;
     let width = $state(250);
     let height = $state(250);
 
-    let isFullscreen = $state(false);
-    let showSettings = false;
-
-    const sessionStorageKey = "graph-visited"
+    let showFullscreen = $state(false);
+    let showSettings = $state(false);
 
     $effect(() => {
         sessionStorage.setItem("graph-config", JSON.stringify(config));
     });
-
-    function showGraphSettings() {
-        showSettings = true;
-    }
 
     function registerEscapeHandler(node: HTMLElement) {
         const handleClick = (e: HTMLElementEventMap["click"]) => {
@@ -64,7 +61,7 @@
         }
 
         $effect(() => {
-            if (!isFullscreen) {
+            if (!showFullscreen) {
                 removeHandlers();
             } else {
                 document.addEventListener('click', handleClick, true);
@@ -78,8 +75,6 @@
             }
         }
     }
-
-
 </script>
 
 
@@ -98,14 +93,20 @@
             ]}
         />
 
-        <div class="graph-action svg-embed" onclick={() => { isFullscreen = !isFullscreen }}>
-            {@html fullscreen}
+        <div class="graph-action svg-embed" onclick={() => { showFullscreen = !showFullscreen }}>
+            {@html showFullscreen ? minimize : maximize}
         </div>
 
         <div class="graph-action svg-embed" onclick={() => { config.depth = (config.depth + 1) % 6 }}
              bind:this={updateGraphDepthAction}>
             {@html eval(`graph${config.depth}`)}
         </div>
+
+        {#if showFullscreen}
+            <div class="graph-action svg-embed" onclick={graph.zoomToFit}>
+                {@html focus}
+            </div>
+        {/if}
 
         <ContextMenu
                 bind:target={updateGraphDepthAction}
@@ -126,7 +127,7 @@
                  }
         />
 
-        <div class="graph-action svg-embed" onclick={showGraphSettings}>
+        <div class="graph-action svg-embed" onclick={() => { showSettings = true }}>
             {@html settings}
         </div>
     </div>
@@ -135,7 +136,27 @@
 {#snippet settingsModal()}
     <Modal bind:showModal={showSettings}>
         <div class="graph-settings-modal">
-            This is a test
+            <div class="graph-settings-item">
+                <div class="graph-settings-header">
+                    <div class="graph-settings-label">Repel Force</div>
+                    <div class="graph-settings-value">{config.repelForce}</div>
+                </div>
+                <input type="range" min="0" max="2.5" step="0.1" bind:value={config.repelForce}/>
+            </div>
+            <div class="graph-settings-item">
+                <div class="graph-settings-header">
+                    <div class="graph-settings-label">Center Force</div>
+                    <div class="graph-settings-value">{config.centerForce}</div>
+                </div>
+                <input type="range" min="0" max="2" step="0.1" bind:value={config.centerForce}/>
+            </div>
+            <div class="graph-settings-item">
+                <div class="graph-settings-header">
+                    <div class="graph-settings-label">Link Distance</div>
+                    <div class="graph-settings-value">{config.linkDistance}</div>
+                </div>
+                <input type="range" min="0" max="100" step="5" bind:value={config.linkDistance}/>
+            </div>
         </div>
     </Modal>
 {/snippet}
@@ -144,24 +165,23 @@
 <div class="graph">
     <h3>Graph View</h3>
 
-    {#if isFullscreen}
+    {#if showFullscreen}
         <div class="graph-outer">
             {@render graphActions()}
-            {@render settingsModal()}
             <div class="graph-container">
             </div>
         </div>
     {/if}
 
-    <div class:background-blur={isFullscreen}>
+    <div class:background-blur={showFullscreen}>
         <div class="graph-outer"
              bind:clientHeight={height} bind:clientWidth={width}
-             use:registerEscapeHandler={isFullscreen} onfocusaway={() => { isFullscreen = false }}
+             use:registerEscapeHandler={showFullscreen} onfocusaway={() => { showFullscreen = false }}
         >
             {@render graphActions()}
             {@render settingsModal()}
             <div class="graph-container">
-                <Graph
+                <Graph bind:this={graph}
                         siteData={sitemapFile} w={width} h={height} config={config}
                 />
             </div>

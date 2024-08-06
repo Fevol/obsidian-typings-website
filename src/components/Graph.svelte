@@ -74,7 +74,7 @@
 <script lang="ts">
     /**
      * The graph rendering script was originally created by jackyzha0 for Quartz and released under the MIT license
-     * All credits for the original script go to the original author
+     * All credits for this script go to the original author
      * In particular, this script combines `Graph.tsx`, `graph.inline.ts` and incorporates some small changes to make
      *   the construct be compatible with Astro.
      * @license MIT
@@ -98,6 +98,11 @@
     let height = $derived(Math.max(250, h));
     let scale = $state(config.scale);
     let viewBox = $derived([-width / 2 / scale, -height / 2 / scale, width / scale, height / scale]);
+    let simulation: d3.Simulation<NodeData, LinkData>;
+
+    let graphData: { nodes: NodeData[], links: LinkData[] };
+    let svg:  d3.Selection<HTMLElement, NodeData, null, undefined>;
+    let zoom: d3.ZoomBehavior<SVGSVGElement, NodeData> | undefined;
 
     const sessionStorageKey = "graph-visited";
 
@@ -113,11 +118,34 @@
         () => [siteData, config.depth]
     );
 
+    explicitEffect(
+        () => {
+            simulation
+                .force("charge", d3.forceManyBody().strength(-100 * config.repelForce))
+                .force(
+                    "link",
+                    d3
+                        .forceLink(graphData.links)
+                        .id((d: any) => d.id)
+                        .distance(config.linkDistance),
+                )
+                .force("center", d3.forceCenter().strength(config.centerForce))
+                .alpha(1)
+                .restart();
+        },
+        () => [config.repelForce, config.centerForce, config.linkDistance]
+    );
+
     $effect(() => {
         if (defsElement)
             defsElement.style.display = config.renderArrows ? "block" : "none"
     });
 
+    export function zoomToFit() {
+        const box = svg.node()!.getBBox();
+        scale = ((config.repelForce / 5) + (config.linkDistance / 500) + 0.575) * 0.85 * Math.min(width / box.width, height / box.height) * (d3.zoomTransform(svg.node()!).k ?? 1);
+        zoom!.transform(svg, d3.zoomIdentity.scale(scale));
+    }
 
     function simplifySlug(fp: string): string {
         const res = stripSlashes(trimSuffix(fp, "index"), true)
@@ -222,7 +250,7 @@
             if (config.showTags) tags.forEach((tag) => neighbourhood.add(tag))
         }
 
-        const graphData: { nodes: NodeData[]; links: LinkData[] } = {
+        graphData = {
             nodes: [...neighbourhood].map((url) => {
                 const text = url.startsWith("tags/") ? "#" + url.substring(5) : data.get(url)?.title ?? url
                 return {
@@ -234,7 +262,7 @@
             links: links.filter((l) => neighbourhood.has(l.source) && neighbourhood.has(l.target)),
         }
 
-        const simulation: d3.Simulation<NodeData, LinkData> = d3
+        simulation = d3
             .forceSimulation(graphData.nodes)
             .force("charge", d3.forceManyBody().strength(-100 * config.repelForce))
             .force(
@@ -246,11 +274,10 @@
             )
             .force("center", d3.forceCenter().strength(config.centerForce));
 
-        if (config.autoScale)
-            // Automatically scale the graph based on the number of nodes, determined experimentally
-            scale = 4 * Math.pow(graphData.nodes.length, -0.4)
+        // Automatically scale the graph based on the number of nodes before bbox can be retrieved, determined experimentally
+        scale = (4 * Math.pow(graphData.nodes.length, -0.4)) * (0.75 * Math.pow(config.repelForce, -0.42))
 
-        const svg = d3.select<HTMLElement, NodeData>(svgContainer)
+        svg = d3.select<HTMLElement, NodeData>(svgContainer)
 
         // Draw links between nodes
         const link = svg
@@ -411,22 +438,21 @@
 
         // Set panning
         if (config.enableZoom) {
-            svg.call(
-                d3
-                    .zoom<SVGSVGElement, NodeData>()
-                    .extent([
-                        [0, 0],
-                        [width, height],
-                    ])
-                    .scaleExtent([0.25, 4])
-                    .on("zoom", ({transform}) => {
-                        link.attr("transform", transform)
-                        node.attr("transform", transform)
-                        const currentScale = transform.k * config.opacityScale
-                        const scaledOpacity = Math.max((currentScale - 1) / 3.75, 0)
-                        labels.attr("transform", transform).style("opacity", scaledOpacity)
-                    }),
-            )
+            zoom = d3
+                .zoom<SVGSVGElement, NodeData>()
+                .extent([
+                    [0, 0],
+                    [width, height],
+                ])
+                .scaleExtent([0.25, 4])
+                .on("zoom", ({transform}) => {
+                    link.attr("transform", transform)
+                    node.attr("transform", transform)
+                    const currentScale = transform.k * config.opacityScale
+                    const scaledOpacity = Math.max((currentScale - 1) / 3.75, 0)
+                    labels.attr("transform", transform).style("opacity", scaledOpacity)
+                })
+            svg.call(zoom)
         }
 
         // Progress the simulation
