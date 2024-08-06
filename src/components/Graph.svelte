@@ -7,9 +7,10 @@
         scale: number,
         autoScale: boolean,
         renderArrows: boolean,
-        fontSize: number,
         opacityScale: number,
         focusOnHover: boolean,
+        labelOffset: number,
+        labelHoverOffset: number,
 
         repelForce: number,
         centerForce: number,
@@ -56,11 +57,12 @@
         depth: 2,
         scale: 1.1,
 
-        fontSize: 0.6,
         opacityScale: 1.3,
         autoScale: true,
         focusOnHover: true,
         renderArrows: false,
+        labelOffset: 8,
+        labelHoverOffset: 6,
 
         repelForce: 0.5,
         centerForce: 0.3,
@@ -396,6 +398,8 @@
                 d3.select<HTMLElement, NodeData>(parent)
                     .select("text")
                     .classed("graph-label-hover", true)
+                    .transition().duration(150)
+                    .attr("dy", (d) => nodeRadius(d) + config.labelOffset + config.labelHoverOffset + "px")
 
                 d3.selectAll(".graph-label")
                     .filter((d: any) => !connectedNodes.includes(d.id))
@@ -406,6 +410,8 @@
                 d3.select<HTMLElement, NodeData>(parent)
                     .select("text")
                     .classed("graph-label-hover", false)
+                    .transition().duration(150)
+                    .attr("dy", (d) => nodeRadius(d) + config.labelOffset + "px")
                 d3.selectAll(".graph-link")
                     .classed("graph-faded", false)
                     .classed("graph-link-hover", false)
@@ -427,7 +433,7 @@
         const labels = graphNode
             .append("text")
             .attr("dx", 0)
-            .attr("dy", (d) => nodeRadius(d) + 8 + "px")
+            .attr("dy", (d) => nodeRadius(d) + config.labelOffset + "px")
             .attr("text-anchor", "middle")
             .text((d) => d.text)
             .style("opacity", (config.opacityScale - 1) / 3.75)
