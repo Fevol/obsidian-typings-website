@@ -3,9 +3,10 @@
 -->
 <script lang="ts">
     import {onMount} from "svelte";
+    import Portal from "./Portal.svelte";
 
-    let pos = $state({x: 0, y: 0});
-    let menu = {w: 0, h: 0};
+    let click_location = $state({x: 0, y: 0});
+    let menu = $state({w: 0, h: 0});
     let browser = {w: 0, h: 0};
     let showMenu = $state(false);
 
@@ -39,24 +40,30 @@
         if (target !== null) {
             target.addEventListener("contextmenu", rightClickContextMenu);
         }
+    });
+
+    let pos = $derived.by(() => {
+        const location = {
+            x: click_location.x,
+            y: click_location.y
+        };
+        if (browser.h - location.y < menu.h)
+            location.y = location.y - menu.h;
+        if (browser.w - location.x < menu.w)
+            location.x = location.x - menu.w;
+        return location;
     })
 
     function rightClickContextMenu(e: MouseEvent) {
-        showMenu = true
+        showMenu = true;
+        click_location = {
+            x: e.clientX,
+            y: e.clientY
+        };
         browser = {
             w: window.innerWidth,
             h: window.innerHeight
         };
-        pos = {
-            x: e.clientX,
-            y: e.clientY
-        };
-        console.log(pos)
-
-        if (browser.h - pos.y < menu.h)
-            pos.y = pos.y - menu.h
-        if (browser.w - pos.x < menu.w)
-            pos.x = pos.x - menu.w
     }
 
     function getContextMenuDimension(node: HTMLElement) {
@@ -68,31 +75,33 @@
 </script>
 
 {#if showMenu}
-    <nav use:getContextMenuDimension class="menu-container" style="top:{pos.y}px; left:{pos.x}px">
-        <div class="menu">
-            {#each Object.entries(groupedItems) as [key, group] (key)}
-                {#if key !== ""}
-                    <div class="menu-separator"/>
-                {/if}
+    <Portal>
+        <nav use:getContextMenuDimension class="menu-container" style="top:{pos.y}px; left:{pos.x}px">
+            <div class="menu">
+                {#each Object.entries(groupedItems) as [key, group] (key)}
+                    {#if key !== ""}
+                        <div class="menu-separator"/>
+                    {/if}
 
-                {#each group as item}
-                    <div class="menu-item" onclick={(e) => {
+                    {#each group as item}
+                        <div class="menu-item" onclick={(e) => {
                         e.preventDefault();
                         item.onClick();
                     }}>
-                        {#if item.icon}
-                            <div class="menu-icon">
-                                {@html item.icon}
+                            {#if item.icon}
+                                <div class="menu-icon">
+                                    {@html item.icon}
+                                </div>
+                            {/if}
+                            <div class="menu-item-title">
+                                {item.text}
                             </div>
-                        {/if}
-                        <div class="menu-item-title">
-                            {item.text}
                         </div>
-                    </div>
+                    {/each}
                 {/each}
-            {/each}
-        </div>
-    </nav>
+            </div>
+        </nav>
+    </Portal>
 {/if}
 
 <svelte:window on:contextmenu|preventDefault

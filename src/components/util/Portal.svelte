@@ -1,5 +1,5 @@
 <script>
-    import { getAllContexts, mount } from "svelte";
+    import {getAllContexts, mount, unmount} from "svelte";
     import PortalConsumer from "./PortalConsumer.svelte";
 
     const { target: target = document.body, children } = $props();
@@ -12,7 +12,7 @@
         instance = mount(PortalConsumer, { target, props: { children }, context })
 
         return () =>  {
-            instance.$destroy();
+            unmount(instance);
         }
     });
 </script>
