@@ -54,7 +54,7 @@
     export let defaultConfig: GraphConfig = {
         enableZoom: true,
         enableDrag: true,
-        depth: 2,
+        depth: 1,
         scale: 1.1,
 
         opacityScale: 1.3,
@@ -105,6 +105,8 @@
     let graphData: { nodes: NodeData[], links: LinkData[] };
     let svg:  d3.Selection<HTMLElement, NodeData, null, undefined>;
     let zoom: d3.ZoomBehavior<SVGSVGElement, NodeData> | undefined;
+
+    let transform = $state(d3.zoomIdentity);
 
     const sessionStorageKey = "graph-visited";
 
@@ -332,19 +334,20 @@
         const drag = (simulation: d3.Simulation<NodeData, LinkData>) => {
             function dragstarted(event: any, d: NodeData) {
                 if (!event.active) simulation.alphaTarget(1).restart()
-                d.fx = d.x
-                d.fy = d.y
+                d.fx = event.x;
+                d.fy = event.y;
             }
 
             function dragged(event: any, d: NodeData) {
-                d.fx = event.x
-                d.fy = event.y
+                d.fx += event.dx / transform.k;
+                d.fy += event.dy / transform.k;
             }
 
             function dragended(event: any, d: NodeData) {
                 if (!event.active) simulation.alphaTarget(0)
-                d.fx = null
-                d.fy = null
+                d.fx = null;
+                d.fy = null;
+                simulation.alpha(1).restart()
             }
 
             return d3
@@ -451,7 +454,8 @@
                     [width, height],
                 ])
                 .scaleExtent([0.25, 4])
-                .on("zoom", ({transform}) => {
+                .on("zoom", (event) => {
+                    transform = event.transform;
                     link.attr("transform", transform)
                     node.attr("transform", transform)
                     const currentScale = transform.k * config.opacityScale
