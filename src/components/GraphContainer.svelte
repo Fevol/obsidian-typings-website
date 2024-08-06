@@ -55,23 +55,20 @@
             node.dispatchEvent(new CustomEvent('focusaway', node));
         }
 
-        function removeHandlers() {
-            document.removeEventListener('click', handleClick, true);
-            document.removeEventListener('keydown', handleEsc, true);
-        }
-
         $effect(() => {
             if (!showFullscreen) {
-                removeHandlers();
+                document.removeEventListener('click', handleClick);
+                document.removeEventListener('keydown', handleEsc);
             } else {
-                document.addEventListener('click', handleClick, true);
-                document.addEventListener('keydown', handleEsc, true);
+                document.addEventListener('click', handleClick);
+                document.addEventListener('keydown', handleEsc);
             }
         });
 
         return {
             destroy() {
-                removeHandlers()
+                document.removeEventListener('click', handleClick);
+                document.removeEventListener('keydown', handleEsc);
             }
         }
     }
@@ -80,7 +77,7 @@
 
 {#snippet graphActions()}
     <div class="graph-action-container">
-        <div class="graph-action svg-embed" onclick={() => { config.renderArrows = !config.renderArrows }}
+        <div class="graph-action svg-embed" onclick={(e) => { e.preventDefault(); config.renderArrows = !config.renderArrows }}
              bind:this={renderArrowAction}>
             {@html config.renderArrows ? arrow : line}
         </div>
@@ -93,17 +90,17 @@
             ]}
         />
 
-        <div class="graph-action svg-embed" onclick={() => { showFullscreen = !showFullscreen }}>
+        <div class="graph-action svg-embed" onclick={(e) => { e.preventDefault(); showFullscreen = !showFullscreen }}>
             {@html showFullscreen ? minimize : maximize}
         </div>
 
-        <div class="graph-action svg-embed" onclick={() => { config.depth = (config.depth + 1) % 6 }}
+        <div class="graph-action svg-embed" onclick={(e) => { e.preventDefault(); config.depth = (config.depth + 1) % 6 }}
              bind:this={updateGraphDepthAction}>
             {@html eval(`graph${config.depth}`)}
         </div>
 
         {#if showFullscreen}
-            <div class="graph-action svg-embed" onclick={graph.zoomToFit}>
+            <div class="graph-action svg-embed" onclick={(e) => { e.preventDefault(); graph.zoomToFit() }}>
                 {@html focus}
             </div>
         {/if}
@@ -176,7 +173,7 @@
     <div class:background-blur={showFullscreen}>
         <div class="graph-outer"
              bind:clientHeight={height} bind:clientWidth={width}
-             use:registerEscapeHandler={showFullscreen} onfocusaway={() => { showFullscreen = false }}
+             use:registerEscapeHandler={showFullscreen} onfocusaway={() => { console.log("AAAA"); showFullscreen = false }}
         >
             {@render graphActions()}
             {@render settingsModal()}

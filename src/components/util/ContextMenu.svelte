@@ -84,10 +84,11 @@
                     {/if}
 
                     {#each group as item}
-                        <div class="menu-item" onclick={(e) => {
-                        e.preventDefault();
-                        item.onClick();
-                    }}>
+                        <div class="menu-item" onclickcapture={(e) => {
+                            e.preventDefault();
+                            item.onClick();
+                            showMenu = false;
+                        }}>
                             {#if item.icon}
                                 <div class="menu-icon">
                                     {@html item.icon}
@@ -104,7 +105,7 @@
     </Portal>
 {/if}
 
-<svelte:window on:contextmenu|preventDefault
-               onclick={(_) => { showMenu = false; }}
+<svelte:window oncontextmenu={(e) => { e.preventDefault() }}
+               onclick={() => { showMenu = false }}
                onmouseup={(e) => { if (e.button === 2) showMenu = false }}
 />
