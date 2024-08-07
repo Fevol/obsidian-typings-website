@@ -169,23 +169,6 @@ text {
 }
 
 
-*[aria-label] {
-    position: relative;
-}
-
-*[aria-label]:hover:before {
-    background: #333;
-    border-radius: 4px;
-    color: #ccc;
-    content: attr(aria-label);
-    padding: 2px 4px;
-    position: absolute;
-    white-space: nowrap;
-    top: calc(100% + 4px);
-    left: -50px;
-    z-index: 1000;
-}
-
 .group-label {
     text-transform: capitalize;
     /*font-variant: small-caps;*/

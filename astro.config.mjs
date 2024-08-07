@@ -15,6 +15,7 @@ export default defineConfig({
                 github: 'https://github.com/fevol/obsidian-typings'
             },
             components: {
+                PageFrame: './src/components/overrides/PageFrame.astro',
                 PageSidebar: './src/components/overrides/PageSidebar.astro',
                 Sidebar: './src/components/overrides/Sidebar.astro',
                 Header: './src/components/overrides/Header.astro',
