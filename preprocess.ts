@@ -14,6 +14,7 @@ const project = new Project();
 
 const augmentations = new Map<string, string>();
 const imports = new Map<string, Set<string>>();
+const indexDirectories = ["obsidian"]
 
 async function convertRecursive(dir: string): Promise<void> {
     for (const dirent of await readdir(dir, {withFileTypes: true})) {
@@ -33,7 +34,12 @@ async function convertRecursive(dir: string): Promise<void> {
                 if (moduleSpecifier.startsWith(".")) {
                     const moduleSourceFile = importDeclaration.getModuleSpecifierSourceFileOrThrow();
                     const relativePath = relative(srcDir, moduleSourceFile.getFilePath())
-                    moduleSpecifier = "./" + relativePath.replace(/(\.d)?\.ts$/, ".js");
+                    let indexDirectory = indexDirectories.find(indexDirectory => relativePath.startsWith(indexDirectory));
+                    if (indexDirectory) {
+                        moduleSpecifier = `./${indexDirectory}/index.js`;
+                    } else {
+                        moduleSpecifier = "./" + relativePath.replace(/(\.d)?\.ts$/, ".js");
+                    }
                 }
                 const importedNames = importDeclaration.getNamedImports().map(namedImport => namedImport.getName());
                 if (!imports.has(moduleSpecifier)) {
@@ -121,7 +127,7 @@ for (let [augmentationsDirName, augmentation] of augmentations) {
 typesSourceFile.addModule({
     name: "_internals",
     isExported: true,
-    statements: "export * from './obsidian/internals/index.js';"
+    statements: "export * from './obsidian/index.js';"
 });
 
 
@@ -150,5 +156,7 @@ typesSourceFile.addModule({
         }]
     }]
 });
+
+typesSourceFile.insertText(0, "/** THIS IS A GENERATED FILE BY BUILD SCRIPT */\n");
 
 await typesSourceFile.copy("./obsidian-typings/src/full-types.d.ts", {overwrite: true}).save();

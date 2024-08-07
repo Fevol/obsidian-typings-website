@@ -3,7 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "preprocess": "bun run ./preprocess.ts",
+    "setup": "npm-run-all setup:*",
+    "setup:index-generation": "cd obsidian-typings && bun run build:generate-index",
+    "setup:preprocess": "bun run ./preprocess.ts",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
