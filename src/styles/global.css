@@ -5,7 +5,7 @@
 
     --sl-color-bg: #1E1E1E;
     --sl-color-bg-nav: var(--sl-color-bg);
-    --sl-color-bg-sidebar: var(--sl-color-bg);
+    --sl-color-bg-sidebar: transparent;
     --sl-color-right-sidebar: var(--sl-color-bg);
 
     --sl-color-context-menu: #262626;
@@ -460,4 +460,48 @@ details > div > div {
     color: var(--sl-color-accent);
     font-weight: 600;
     padding: 0 8px;
+}
+
+.content-container {
+    width: 100%;
+    margin: 0 auto;
+
+    #starlight__sidebar {
+        left: auto;
+    }
+}
+
+@media (min-width: 640px) {
+    .content-container {
+        max-width:640px;
+    }
+}
+
+@media (min-width: 768px) {
+    .content-container {
+        max-width:768px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .content-container {
+        max-width: 1024px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .content-container {
+        max-width:1280px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .content-container {
+        max-width:1536px;
+    }
+}
+
+mobile-starlight-toc nav {
+    z-index: 10;
+    border: unset;
 }
