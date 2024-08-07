@@ -10,7 +10,7 @@ export function load(app) {
                     sidebar: {
                         badge: {
                             text: "TODO",
-                            variant: "tip"
+                            variant: "caution"
                         },
                     },
                     ...page.frontmatter,

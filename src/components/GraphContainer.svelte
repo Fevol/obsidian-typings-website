@@ -39,6 +39,15 @@
     let showFullscreen = $state(false);
     let showSettings = $state(false);
 
+    const graphIconMap = {
+        0: graph0,
+        1: graph1,
+        2: graph2,
+        3: graph3,
+        4: graph4,
+        5: graph5,
+    }
+
     $effect(() => {
         sessionStorage.setItem("graph-config", JSON.stringify(config));
     });
@@ -96,7 +105,7 @@
 
         <div class="graph-action svg-embed" onclick={(e) => { e.preventDefault(); config.depth = (config.depth + 1) % 6 }}
              bind:this={updateGraphDepthAction}>
-            {@html eval(`graph${config.depth}`)}
+            {@html graphIconMap[config.depth]}
         </div>
 
         {#if showFullscreen}

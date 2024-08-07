@@ -10,12 +10,14 @@ export default defineConfig({
     integrations: [
         svelte(),
         starlight({
-            title: 'Obsidian Typings TypeDoc',
+            title: 'Obsidian Typings',
             social: {
                 github: 'https://github.com/fevol/obsidian-typings'
             },
             components: {
-                PageSidebar: './src/components/PageSidebar.astro',
+                PageSidebar: './src/components/overrides/PageSidebar.astro',
+                Sidebar: './src/components/overrides/Sidebar.astro',
+                Header: './src/components/overrides/Header.astro',
             },
             sidebar: [
                 {
@@ -47,9 +49,9 @@ export default defineConfig({
                         plugin: [
                             'typedoc-plugin-mdn-links',
                             'typedoc-plugin-frontmatter',
-                            './plugins/resolve-source-plugin.js',
-                            './plugins/badge-addition-plugin.js',
-                            './plugins/custom-md-render-plugin.js',
+                            './typedoc-plugins/resolve-source-plugin.js',
+                            './typedoc-plugins/badge-addition-plugin.js',
+                            './typedoc-plugins/custom-md-render-plugin.js',
                         ],
                         theme: 'starlight-typedoc',
                         githubPages: false,

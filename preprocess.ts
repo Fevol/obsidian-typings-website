@@ -80,7 +80,7 @@ async function convertRecursive(dir: string): Promise<void> {
 const srcDir = join(process.cwd().replaceAll("\\", "/"), "./obsidian-typings/src");
 await convertRecursive(srcDir);
 
-const typesSourceFile = project.addSourceFileAtPath("./obsidian-typings/src/types.d.ts");
+const typesSourceFile = project.addSourceFileAtPath("./obsidian-typings/src/obsidian/augmentations/index.d.ts");
 for (const [moduleSpecifier, importedNames] of imports) {
     typesSourceFile.addImportDeclaration({
         moduleSpecifier: moduleSpecifier,
@@ -121,7 +121,7 @@ for (let [augmentationsDirName, augmentation] of augmentations) {
 typesSourceFile.addModule({
     name: "_internals",
     isExported: true,
-    statements: "export * from './obsidian/types.js';"
+    statements: "export * from './obsidian/internals/index.js';"
 });
 
 

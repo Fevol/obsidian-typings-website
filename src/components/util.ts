@@ -10,12 +10,9 @@ export function getRelativePath(current: string, next: string) {
 }
 
 export function clickOutside(node: HTMLElement) {
-    const handleClick = event => {
-        if (node && !node.contains(event.target) && !event.defaultPrevented) {
-            node.dispatchEvent(
-                new CustomEvent('click_outside', node)
-            )
-        }
+    const handleClick = (event: MouseEvent) => {
+        if (node && !node.contains(event.target as HTMLElement) && !event.defaultPrevented)
+            node.dispatchEvent(new CustomEvent('click_outside'))
     }
     document.addEventListener('click', handleClick, true);
     return {

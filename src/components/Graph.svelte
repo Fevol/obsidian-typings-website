@@ -456,11 +456,18 @@
                 .scaleExtent([0.25, 4])
                 .on("zoom", (event) => {
                     transform = event.transform;
-                    link.attr("transform", transform)
-                    node.attr("transform", transform)
                     const currentScale = transform.k * config.opacityScale
                     const scaledOpacity = Math.max((currentScale - 1) / 3.75, 0)
-                    labels.attr("transform", transform).style("opacity", scaledOpacity)
+
+                    if (event.sourceEvent instanceof WheelEvent) {
+                        link.transition().ease(d3.easeQuad).duration(125).attr("transform", transform)
+                        node.transition().ease(d3.easeQuad).duration(125).attr("transform", transform)
+                        labels.transition().ease(d3.easeQuad).duration(125).attr("transform", transform).style("opacity", scaledOpacity)
+                    } else {
+                        link.attr("transform", transform)
+                        node.attr("transform", transform)
+                        labels.attr("transform", transform).style("opacity", scaledOpacity)
+                    }
                 })
             svg.call(zoom)
         }
