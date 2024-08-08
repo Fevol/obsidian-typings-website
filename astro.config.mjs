@@ -3,7 +3,7 @@ import svelte from '@astrojs/svelte'
 import {defineConfig} from 'astro/config'
 import starlightTypeDoc, {typeDocSidebarGroup} from 'starlight-typedoc'
 import sitemap from "./integrations/astro-sitemap"
-import todoRenderer from './remark-plugins/todo-renderer'
+import {argumentsRenderer, admonitionRenderer, githubLocationRenderer} from './remark-plugins'
 
 
 export default defineConfig({
@@ -66,7 +66,11 @@ export default defineConfig({
         sitemap()
     ],
     markdown: {
-        remarkPlugins: [todoRenderer]
+        remarkPlugins: [
+            argumentsRenderer,
+            admonitionRenderer,
+            githubLocationRenderer
+        ]
     }
 })
 

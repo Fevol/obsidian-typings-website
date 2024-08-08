@@ -18,7 +18,7 @@
         backlinksHeader.innerText = "Backlinks";
         backlinksPane!.appendChild(backlinksHeader);
 
-        for (const link of sitemap_entry.backlinks) {
+        for (const link of sitemap_entry.backlinks.sort((a, b) => siteMap[a].title.localeCompare(siteMap[b].title))) {
             const backlink = document.createElement('a');
             backlink.href = getRelativePath(location.pathname, link);
             backlink.innerText = siteMap[link as keyof typeof siteMap].title;
