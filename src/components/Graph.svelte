@@ -16,6 +16,7 @@
         centerForce: number,
         linkDistance: number,
 
+        customFolderTags: Record<string, string>,
         showTags: boolean,
         removeTags: string[],
     }
@@ -68,8 +69,17 @@
         centerForce: 0.3,
         linkDistance: 30,
 
-        showTags: true,
-        removeTags: []
+        showTags: false,
+        removeTags: [],
+        customFolderTags: {
+            "api/namespaces/obsidian": "obsidian",
+            "api/namespaces/augmentations": "augmentations",
+            "api/namespaces/internals": "internals",
+            "api/namespaces/global": "global",
+            "api/namespaces/codemirror_view": "codemirror",
+            "api/namespaces/canvas": "canvas",
+            "api/namespaces/publish": "publish",
+        },
     }
 </script>
 
@@ -118,7 +128,19 @@
     }
 
     explicitEffect(
-        () => { constructGraph(siteData) },
+        () => {
+            if (config.customFolderTags) {
+                // If path startswith a custom folder tag, add tag to the tags list
+                for (const [tag, folder] of Object.entries(config.customFolderTags)) {
+                    for (const [path, details] of Object.entries(siteData)) {
+                        if (path.startsWith(tag)) {
+                            details.tags.push(folder)
+                        }
+                    }
+                }
+            }
+            constructGraph(siteData)
+        },
         () => [siteData, config.depth]
     );
 
@@ -322,13 +344,16 @@
 
         // Calculate color
         const determineClass = (d: NodeData) => {
+            let classname = "graph-node"
             if (d.id === slug) {
-                return "graph-node graph-node-current"
+                classname += " graph-node-current"
             } else if (visited.has(d.id) || d.id.startsWith("tags/")) {
-                return "graph-node graph-node-visited"
-            } else {
-                return "graph-node"
+                classname += " graph-node-visited"
+            } else { }
+            if (d.tags.length) {
+                classname += " " + d.tags.map((tag) => "graph-node-tag-" + tag).join(" ")
             }
+            return classname
         }
 
         const drag = (simulation: d3.Simulation<NodeData, LinkData>) => {

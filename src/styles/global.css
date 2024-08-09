@@ -157,6 +157,27 @@
     fill: var(--graph-tag-node-color);
 }
 
+.graph-node-tag-obsidian {
+    fill: var(--sl-color-purple-high);
+}
+
+.graph-node-tag-internals {
+    fill: var(--sl-color-orange-high);
+}
+
+.graph-node-tag-augmentations {
+    fill: var(--sl-color-red-high);
+}
+
+.graph-node-tag-publish {
+    fill: var(--sl-color-green-high);
+}
+
+.graph-node-tag-canvas {
+    fill: var(--sl-color-blue-high);
+}
+
+
 .graph-node:hover {
     fill: var(--graph-node-hover-color);
 }
