@@ -2,13 +2,12 @@ import starlight from '@astrojs/starlight'
 import svelte from '@astrojs/svelte'
 import {defineConfig} from 'astro/config'
 import starlightTypeDoc, {typeDocSidebarGroup} from 'starlight-typedoc'
-import sitemap from "./integrations/astro-sitemap"
 import {argumentsRenderer, admonitionRenderer, githubLocationRenderer} from './remark-plugins'
+import starlightSiteGraph from "starlight-site-graph";
 
 
 export default defineConfig({
     integrations: [
-        svelte(),
         starlight({
             title: 'Obsidian Typings',
             social: {
@@ -16,7 +15,7 @@ export default defineConfig({
             },
             components: {
                 PageFrame: './src/components/overrides/PageFrame.astro',
-                PageSidebar: './src/components/overrides/PageSidebar.astro',
+                // PageSidebar: './src/components/overrides/PageSidebar.astro',
                 Sidebar: './src/components/overrides/Sidebar.astro',
                 Header: './src/components/overrides/Header.astro',
             },
@@ -61,13 +60,15 @@ export default defineConfig({
                         excludeExternals: false
                     },
                 }),
+                starlightSiteGraph({ })
             ]
         }),
-        sitemap()
+        svelte(),
+
     ],
     markdown: {
         remarkPlugins: [
-            argumentsRenderer,
+            // argumentsRenderer,
             admonitionRenderer,
             githubLocationRenderer
         ]

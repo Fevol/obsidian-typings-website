@@ -6,6 +6,45 @@ import {decorateHast} from "./util.js";
 const keywords = ["abstract"];
 
 
+function createTypeElement(signature) {
+    if (signature.type.some((type) => type.name))
+        return createNestedTypeElement(signature);
+    else
+        return createBaseTypeElement(signature);
+}
+
+function createBaseTypeElement(signature) {
+    return h('div', {class: 'parameter-field', ariaLabel: signature.description}, [
+        signature.url ? h('a', {href: signature.url}, signature.name) : signature.name,
+        signature.type ? [
+            {type: 'text', value: ": "},
+            signature.type.map((type, i) => {
+                return [
+                    h('div', {class: 'parameter-type'}, [
+                        type.url ? h('a', {href: type.url}, type.type) : {type: 'text', value: type.type}
+                    ]),
+                    i !== signature.type.length - 1 ? {type: 'text', value: " | "} : undefined
+                ];
+            })
+        ] : undefined
+    ]);
+}
+
+function createNestedTypeElement(signature) {
+    return h('div', {class: 'nested-parameter-type'}, [
+        {type: 'text', value: signature.name + ": {"},
+        ...Object.entries(signature.type).map((k, v) => {
+            return [
+                createTypeElement(k[1]),
+                (v !== Object.keys(signature.type).length - 1) ? {type: 'text', value: ", "} : undefined
+            ];
+        }),
+        {type: 'text', value: "}"}
+    ]);
+}
+
+
+
 function extractParamInfo(current_node, parent, i) {
     const type = [];
     for (let j = 3; j < current_node.children.length; j += 2) {
@@ -33,6 +72,51 @@ function extractParamInfo(current_node, parent, i) {
     return {name: current_node.children[1].children[0].value, type, description};
 }
 
+
+
+function createHeadingElement(original_heading, parameters, returns) {
+    original_heading.properties = {
+        style: 'font-size: 0;'
+    };
+
+    const node_children = [];
+    let isDeprecated = false;
+    let heading = original_heading.children[0];
+    if (original_heading.children[0].type === "delete") {
+        isDeprecated = true;
+        heading = original_heading.children[0].children[0];
+    }
+    const heading_text = heading.value.replace(/\(.*\)/, "");
+    if (!(heading.value.includes("()") || parameters.length)) {
+        node_children.push(h("span", {class: isDeprecated ? "deprecated" : ""},
+            [{"type": "text", "value": heading_text}
+            ]));
+        node_children.push(...returns);
+    } else {
+        node_children.push(...returns.map((signature) => {
+            signature.properties = {
+                class: 'signature-type return-type'
+            };
+            return signature;
+        }));
+        node_children.push({
+            type: 'text',
+            value: heading_text + "("
+        });
+        node_children.push(...parameters);
+        node_children.push({
+            type: 'text',
+            value: ")"
+        });
+    }
+
+    const new_heading = h('div', {class: 'object-signature'}, node_children);
+
+    decorateHast(original_heading);
+    decorateHast(new_heading);
+
+    return new_heading;
+}
 
 export default function remarkToc() {
     return function (tree) {
@@ -179,44 +263,6 @@ export default function remarkToc() {
                 returns_length = i - returns_heading_index - 1;
             }
 
-
-            function createTypeElement(signature) {
-                if (signature.type.some((type) => type.name))
-                    return createNestedTypeElement(signature);
-                else
-                    return createBaseTypeElement(signature);
-            }
-
-            function createBaseTypeElement(signature) {
-                return h('div', {class: 'parameter-field', ariaLabel: signature.description}, [
-                    signature.url ? h('a', {href: signature.url}, signature.name) : signature.name,
-                    signature.type ? [
-                        {type: 'text', value: ": "},
-                        signature.type.map((type, i) => {
-                            return [
-                                h('div', {class: 'parameter-type'}, [
-                                    type.url ? h('a', {href: type.url}, type.type) : {type: 'text', value: type.type}
-                                ]),
-                                i !== signature.type.length - 1 ? {type: 'text', value: " | "} : undefined
-                            ];
-                        })
-                    ] : undefined
-                ]);
-            }
-
-            function createNestedTypeElement(signature) {
-                return h('div', {class: 'nested-parameter-type'}, [
-                    {type: 'text', value: signature.name + ": {"},
-                    ...Object.entries(signature.type).map((k, v) => {
-                        return [
-                            createTypeElement(k[1]),
-                            (v !== Object.keys(signature.type).length - 1) ? {type: 'text', value: ", "} : undefined
-                        ];
-                    }),
-                    {type: 'text', value: "}"}
-                ]);
-            }
-
             parameter_signatures = parameter_signatures.map((signature) => {
                 return h('div', {
                     class: 'signature-type parameter' + (signature.optional ? " parameter-optional" : ""),
@@ -247,59 +293,11 @@ export default function remarkToc() {
             //     );
             // }
 
-            // Set current node as display: none
-            node.properties = {
-                style: 'font-size: 0;'
-            };
-
-            const node_children = [];
-            let isDeprecated = false;
-            if (heading.type === "delete") {
-                isDeprecated = true;
-                heading = heading.children[0];
-            }
-            const heading_text = heading.value.replace(/\(.*\)/, "");
-            if (!isMethod) {
-                node_children.push(h("span", {class: isDeprecated ? "deprecated" : ""},
-                    [{"type": "text", "value": heading_text}
-                    ]));
-                node_children.push(...field_signatures);
-            } else {
-                node_children.push(...field_signatures.map((signature) => {
-                    signature.properties = {
-                        class: 'signature-type return-type'
-                    };
-                    return signature;
-                }));
-                node_children.push({
-                    type: 'text',
-                    value: heading_text + "("
-                });
-                node_children.push(...parameter_signatures);
-                node_children.push({
-                    type: 'text',
-                    value: ")"
-                });
-            }
-
-            // Create a new container node
-            const signature_container = h('div', {class: 'object-signature'}, node_children);
-
-            // node.children = [
-            //     ...parameter_signatures,
-            //     ...node.children,
-            //     ...field_signatures
-            // ]
-            // node.properties = {
-            //     class: 'object-signature'
-            // };
-
-            decorateHast(node);
-            decorateHast(signature_container);
+            const new_heading = createHeadingElement(node);
 
             let removeBlockQuote = true;
             let offset = 0;
-            parent.children.splice(index + 1, removeBlockQuote, signature_container);
+            parent.children.splice(index + 1, removeBlockQuote, new_heading);
             offset += removeBlockQuote;
             if (parameters_heading_index !== -1) {
                 parent.children.splice(parameters_heading_index + 1, parameters_length);
