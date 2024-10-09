@@ -3,7 +3,7 @@ import svelte from '@astrojs/svelte'
 import {defineConfig} from 'astro/config'
 import starlightTypeDoc, {typeDocSidebarGroup} from 'starlight-typedoc'
 import {argumentsRenderer, admonitionRenderer, githubLocationRenderer} from './remark-plugins'
-import starlightSiteGraph from "starlight-site-graph";
+import starlightThemeObsidian from "starlight-theme-obsidian";
 
 
 export default defineConfig({
@@ -12,12 +12,6 @@ export default defineConfig({
             title: 'Obsidian Typings',
             social: {
                 github: 'https://github.com/fevol/obsidian-typings'
-            },
-            components: {
-                PageFrame: './src/components/overrides/PageFrame.astro',
-                // PageSidebar: './src/components/overrides/PageSidebar.astro',
-                Sidebar: './src/components/overrides/Sidebar.astro',
-                Header: './src/components/overrides/Header.astro',
             },
             sidebar: [
                 {
@@ -60,7 +54,7 @@ export default defineConfig({
                         excludeExternals: false
                     },
                 }),
-                starlightSiteGraph({ })
+                starlightThemeObsidian()
             ]
         }),
         svelte(),

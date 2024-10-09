@@ -1,60 +1,5 @@
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: unset;
-}
-
-::-webkit-scrollbar-thumb {
-    /*Set background to var and 10% darker*/
-    background-color: var(--sl-color-bg);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
 .svg-embed {
     display: flex;
-}
-
-
-.backlinks-pane {
-    padding: 1rem var(--sl-sidebar-pad-x);
-    display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-
-    .backlink {
-        margin-left: 0.8rem;
-        text-decoration: none;
-        color: var(--sl-color-accent);
-        font-weight: 800;
-        font-size: 0.95rem;
-
-        &:hover {
-            filter: brightness(1.2);
-        }
-    }
-}
-
-@media (max-width: 1152px) {
-    .main-frame > div {
-        display: flex;
-        flex-direction: column-reverse;
-        .right-sidebar {
-            display: flex;
-        }
-    }
-}
-
-.right-sidebar {
-    border-inline-start-color: var(--sl-color-bg);
-    background-color: var(--sl-color-right-sidebar);
-    width: calc(var(--sl-sidebar-width) +(100% - var(--sl-content-width) - var(--sl-sidebar-width)) / 2);
 }
 
 .starlight-aside {
@@ -89,13 +34,6 @@
     background-color: #ae7238;
 }
 
-
-.sl-badge.caution {
-    background: linear-gradient(30deg, var(--sl-color-purple) 0%, var(--sl-color-blue) 100%);
-    color: var(--sl-color-white) !important;
-    border-width: 0 !important;
-}
-
 .sl-separator {
     display: flex;
 }
@@ -111,50 +49,6 @@
     color: var(--sl-color-accent);
     font-weight: 600;
     padding: 0 8px;
-}
-
-.content-container {
-    width: 100%;
-    margin: 0 auto;
-
-    #starlight__sidebar {
-        left: auto;
-    }
-}
-
-@media (min-width: 640px) {
-    .content-container {
-        max-width:640px;
-    }
-}
-
-@media (min-width: 768px) {
-    .content-container {
-        max-width:768px;
-    }
-}
-
-@media (min-width: 1024px) {
-    .content-container {
-        max-width: 1024px;
-    }
-}
-
-@media (min-width: 1280px) {
-    .content-container {
-        max-width:1280px;
-    }
-}
-
-@media (min-width: 1536px) {
-    .content-container {
-        max-width:1536px;
-    }
-}
-
-mobile-starlight-toc nav {
-    z-index: 10;
-    border: unset;
 }
 
 .code-location-icon {
