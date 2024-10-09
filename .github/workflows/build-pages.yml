@@ -29,10 +29,8 @@ jobs:
           bun install
           cd obsidian-typings
           bun install
-      - name: Build Obsidian Typings
-        run: |
-          cd obsidian-typings
-          bun run build
+      - name: Build Obsidian Typings File
+        run: bun run setup
       - name: Install, build, and upload your site
         uses: withastro/action@v3
   deploy:
