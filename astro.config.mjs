@@ -7,6 +7,8 @@ import starlightThemeObsidian from "starlight-theme-obsidian";
 
 
 export default defineConfig({
+    site: 'https://fevol.github.io',
+    base: '/obsidian-typings-website',
     integrations: [
         starlight({
             title: 'Obsidian Typings',
